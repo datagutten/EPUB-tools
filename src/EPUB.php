@@ -30,18 +30,30 @@ class EPUB
 
     /**
      * Convert a relative link to a file path
-     * @param string $link
+     * @param string $link Link
+     * @param string $content_folder Content folder where the page files are placed
      * @return string File path
      * @throws FileNotFoundException File does not exist
      */
-    public function link_to_file(string $link): string
+    public static function link_to_file(string $link, string $content_folder): string
     {
-        $file = files::path_join($this->content_folder, preg_replace('/(.+\.\w+)(?:#.+)?/', '$1', $link));
+        $file = files::path_join($content_folder, preg_replace('/(.+\.\w+)(?:#.+)?/', '$1', $link));
         if (!file_exists($file))
             throw new FileNotFoundException($file);
         if (DIRECTORY_SEPARATOR != '/')
             $file = str_replace('/', DIRECTORY_SEPARATOR, $file);
         return $file;
+    }
+
+    /**
+     * Convert a relative link to a file path
+     * @param string $link
+     * @return string File path
+     * @throws FileNotFoundException File does not exist
+     */
+    public function get_link_file(string $link): string
+    {
+        return self::link_to_file($link, $this->content_folder);
     }
 
     /**
@@ -71,10 +83,15 @@ class EPUB
     public function getCoverImage(): string
     {
         $cover_info = $this->opf->findCover();
-        $file = $this->link_to_file($cover_info->getAttribute('href'));
+        $file = $this->get_link_file($cover_info->getAttribute('href'));
         $dom = new DOMDocument();
         $dom->loadHTMLFile($file);
         $image = $dom->getElementsByTagName('img')->item(0);
-        return $this->link_to_file($image->getAttribute('src'));
+        return $this->get_link_file($image->getAttribute('src'));
+    }
+
+    public function getPages(): array
+    {
+
     }
 }
