@@ -144,16 +144,20 @@ class OPF
     {
         $package = $this->xpath->query('/opf:package')->item(0);
         $key = $package->getAttribute('unique-identifier');
-        return $this->xpath->query(sprintf('/opf:package/opf:metadata/dc:identifier[@id="%s"]', $key))->item(0);
+        return $this->getIdentifiers($key)->item(0);
     }
 
     /**
      * Get all dc:identifier elements
+     * @param string|null $id Identifier id
      * @return DOMNodeList
      */
-    public function getIdentifiers(): DOMNodeList
+    public function getIdentifiers(string $id = null): DOMNodeList
     {
-        return $this->xpath->query('//dc:identifier');
+        if (!empty($id))
+            return $this->xpath->query(sprintf('/opf:package/opf:metadata/dc:identifier[@id="%s"]', $id));
+        else
+            return $this->xpath->query('/opf:package/opf:metadata/dc:identifier');
     }
 
     /**
