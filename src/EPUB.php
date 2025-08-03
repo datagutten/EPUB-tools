@@ -9,6 +9,8 @@ use RuntimeException;
 class EPUB
 {
     private string $folder;
+    public string $content_folder;
+    public OPF $opf;
 
     function __construct(string $epub_file_or_folder, string $unpack_folder = null)
     {
@@ -16,24 +18,27 @@ class EPUB
         {
             if (empty($unpack_folder))
                 throw new RuntimeException('Unpack folder must be provided when epub is a file');
-            EPUBUtils::unpackEPUB($epub_file_or_folder, $unpack_folder);
+            if(!file_exists($unpack_folder))
+                EPUBUtils::unpackEPUB($epub_file_or_folder, $unpack_folder);
             $this->folder = $unpack_folder;
         }
         else
             $this->folder = $epub_file_or_folder;
+        $this->opf = $this->get_opf();
     }
 
     /**
      * Find OPF file and return OPF object
      * @return OPF
      */
-    public function opf(): OPF
+    public function get_opf(): OPF
     {
         $container = files::path_join($this->folder, 'META-INF', 'container.xml');
         $dom = new DomDocument();
         $dom->load($container);
         $rootfile = $dom->getElementsByTagName('rootfile')->item(0);
         $rootfile = files::path_join($this->folder, $rootfile->getAttribute('full-path'));
+        $this->content_folder = dirname($rootfile);
         return new OPF($rootfile, $this->folder);
     }
 
@@ -43,8 +48,7 @@ class EPUB
      */
     public function getISBN(): string
     {
-        $opf = $this->opf();
-        foreach ($opf->getIdentifiers() as $identifier)
+        foreach ($this->opf->getIdentifiers() as $identifier)
         {
             $id = $identifier->getAttribute('id');
             if (stripos($id, 'isbn') !== false || stripos($identifier->nodeValue, 'isbn') !== false)
