@@ -90,8 +90,40 @@ class EPUB
         return $this->get_link_file($image->getAttribute('src'));
     }
 
-    public function getPages(): array
+    /**
+     * Get files for all pages defined in spine
+     * @return string[]
+     * @throws FileNotFoundException
+     */
+    public function getPageFiles(): array
     {
+        $files = [];
+        $pages = $this->opf->getPages();
+        foreach ($pages as $page)
+        {
+            $href = $page->getAttribute('href');
+            $files[] = $this->get_link_file($href);
+        }
+        return $files;
+    }
 
+    /**
+     * Get all files defined in manifest
+     * @return string[]
+     */
+    public function getFiles(): array
+    {
+        $files = [];
+        foreach ($this->opf->getItems() as $item)
+        {
+            try
+            {
+                $files[] = $this->get_link_file($item->getAttribute('href'));
+            } catch (FileNotFoundException)
+            {
+                continue;
+            }
+        }
+        return $files;
     }
 }

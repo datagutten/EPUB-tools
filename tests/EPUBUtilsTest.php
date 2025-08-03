@@ -51,9 +51,29 @@ class EPUBUtilsTest extends TestCase
 
     public function testGetPrimaryKey()
     {
-        $folder = EPUBUtils::unpackEPUB($this->test_files['accessible_epub_3.epub'], $this->unpack_folder);
-        $epub = new EPUB($folder);
+        $epub = new EPUB($this->test_files['accessible_epub_3.epub'], $this->unpack_folder);
         $key = $epub->opf->getPrimaryKey();
         $this->assertEquals('urn:isbn:9781449328030', $key->nodeValue);
+    }
+
+    public function testGetPageFiles()
+    {
+        $epub = new EPUB($this->test_files['accessible_epub_3.epub'], $this->unpack_folder);
+        $pages = $epub->getPageFiles();
+        $this->assertStringContainsString('cover.xhtml', $pages[0]);
+    }
+
+    public function testGetFiles()
+    {
+        $epub = new EPUB($this->test_files['accessible_epub_3.epub'], $this->unpack_folder);
+        $files = $epub->getFiles();
+        $this->assertStringContainsString('epub.css',  $files[1]);
+    }
+
+    public function testGetItem()
+    {
+        $epub = new EPUB($this->test_files['accessible_epub_3.epub'], $this->unpack_folder);
+        $page = $epub->opf->getItem('id-id2442754');
+        $this->assertEquals('index.xhtml', $page->getAttribute('href'));
     }
 }

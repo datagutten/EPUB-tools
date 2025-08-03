@@ -43,12 +43,65 @@ class OPF
     }
 
     /**
+     * Get the books spine element
+     * @return DOMElement
+     */
+    public function getSpine(): DOMElement
+    {
+        return $this->xpath->query('/opf:package/opf:spine')->item(0);
+    }
+
+    public function getManifest(): DOMElement
+    {
+        return $this->xpath->query('/opf:package/opf:manifest')->item(0);
+    }
+
+    /**
+     * Get an item from the manifest
+     * @param string $id
+     * @return DOMElement
+     */
+    public function getItem(string $id): DOMElement
+    {
+        $manifest = $this->getManifest();
+        $item = $this->xpath->query(sprintf('opf:item[@id="%s"]', $id), $manifest);
+        if ($item->length == 0)
+            throw new RuntimeException('Item not found');
+        return $item->item(0);
+    }
+
+    /**
+     * Get all items defined in manifest
+     * @return DOMNodeList
+     */
+    public function getItems(): DOMNodeList
+    {
+        $manifest = $this->getManifest();
+        return $this->xpath->query('opf:item', $manifest);
+    }
+
+    /**
+     * @return DOMElement[]
+     */
+    public function getPages(): array
+    {
+        $pages = [];
+        $spine = $this->getSpine();
+        foreach ($this->xpath->query('opf:itemref', $spine) as $node)
+        {
+            $id = $node->getAttribute('idref');
+            $pages[] = $this->getItem($id);
+        }
+        return $pages;
+    }
+
+    /**
      * Remove manifest item entries for missing files
      * @return void
      */
     protected function strip_items(): void
     {
-        $manifest = $this->xpath->query('/opf:package/opf:manifest')->item(0);
+        $manifest = $this->getManifest();
 
         foreach ($this->xpath->query('opf:item', $manifest) as $item)
         {
@@ -72,7 +125,7 @@ class OPF
      */
     protected function strip_spine(): void
     {
-        $spine = $this->xpath->query('/opf:package/opf:spine')->item(0);
+        $spine = $this->getSpine();
         foreach ($this->xpath->query('opf:itemref', $spine) as $itemref)
         {
             $id = $itemref->getAttribute('idref');
