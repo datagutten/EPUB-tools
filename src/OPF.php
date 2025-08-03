@@ -9,6 +9,7 @@ use DOMDocument;
 use DOMElement;
 use DOMNodeList;
 use DOMXPath;
+use RuntimeException;
 
 class OPF
 {
@@ -153,6 +154,25 @@ class OPF
     public function getIdentifiers(): DOMNodeList
     {
         return $this->xpath->query('//dc:identifier');
+    }
+
+    /**
+     * Try to find ISBN in OPF
+     * @return string ISBN
+     * @throws RuntimeException ISBN not found
+     */
+    public function findISBN(): string
+    {
+        foreach ($this->getIdentifiers() as $identifier)
+        {
+            $id = $identifier->getAttribute('id');
+            if (stripos($id, 'isbn') !== false || stripos($identifier->nodeValue, 'isbn') !== false)
+            {
+                $identifier->setAttribute('id', 'ISBN');
+                return preg_replace('/\D*(\d+)/', '$1', $identifier->nodeValue);
+            }
+        }
+        throw new RuntimeException('ISBN not found in OPF');
     }
 
     public function findCover(): ?DOMElement

@@ -65,16 +65,7 @@ class EPUB
      */
     public function getISBN(): string
     {
-        foreach ($this->opf->getIdentifiers() as $identifier)
-        {
-            $id = $identifier->getAttribute('id');
-            if (stripos($id, 'isbn') !== false || stripos($identifier->nodeValue, 'isbn') !== false)
-            {
-                $identifier->setAttribute('id', 'ISBN');
-                return preg_replace('/\D*(\d+)/', '$1', $identifier->nodeValue);
-            }
-        }
-        throw new RuntimeException('ISBN not found in OPF');
+        return $this->opf->findISBN();
     }
 
     public function getCoverImage(): string
