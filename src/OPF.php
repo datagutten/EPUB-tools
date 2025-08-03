@@ -16,15 +16,22 @@ class OPF
     private string $output_folder;
     public DOMXPath $xpath;
     private array $strip_patterns = [];
+    /**
+     * @var string OPF file path
+     */
+    public string $file;
+    public string $content_folder;
 
     function __construct($file, $epub_root)
     {
+        $this->file = $file;
         $this->dom = new DOMDocument();
         $this->dom->load($file);
         $this->xpath = new DOMXPath($this->dom);
         $this->xpath->registerNamespace('dc', 'http://purl.org/dc/elements/1.1/');
         $this->xpath->registerNamespace('opf', 'http://www.idpf.org/2007/opf');
         $this->output_folder = $epub_root;
+        $this->content_folder = dirname($file);
     }
 
     function strip_metadata($tags = [])
@@ -137,6 +144,16 @@ class OPF
     public function getIdentifiers(): DOMNodeList
     {
         return $this->xpath->query('//dc:identifier');
+    }
+
+    public function findCover(): ?DOMElement
+    {
+        foreach ($this->xpath->query('/opf:package/opf:manifest/opf:item') as $item)
+        {
+            if ($item->getAttribute('id') == 'cover' || str_contains($item->getAttribute('href'), 'cover'))
+                return $item;
+        }
+        return null;
     }
 
 
