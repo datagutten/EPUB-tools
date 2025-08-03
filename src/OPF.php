@@ -14,7 +14,7 @@ use RuntimeException;
 class OPF
 {
     public DOMDocument $dom;
-    private string $output_folder;
+    public string $output_folder;
     public DOMXPath $xpath;
     private array $strip_patterns = [];
     /**
@@ -22,6 +22,7 @@ class OPF
      */
     public string $file;
     public string $content_folder;
+    protected array $valid_files = [];
 
     function __construct($file, $epub_root)
     {
@@ -32,70 +33,72 @@ class OPF
         $this->xpath->registerNamespace('dc', 'http://purl.org/dc/elements/1.1/');
         $this->xpath->registerNamespace('opf', 'http://www.idpf.org/2007/opf');
         $this->output_folder = $epub_root;
-        $this->content_folder = dirname($file);
+        $this->content_folder = files::path_join($this->output_folder, basename(dirname($file)));
     }
 
-    function strip_metadata($tags = [])
+    /**
+     * Remove manifest item entries for missing files
+     * @return void
+     */
+    protected function strip_items(): void
     {
-        foreach ($this->dom->getElementsByTagName('metadata')->item(0)->childNodes as $dc) //Process metadata
-        {
-            if (isset($dc->tagName) && array_search($dc->tagName, $tags) !== false)
-            {
-                $remove[] = $dc;
-            }
-        }
-    }
+        $manifest = $this->xpath->query('/opf:package/opf:manifest')->item(0);
 
-
-    function strip_missing_files($strip_properties = [])
-    {
-        $valid_files = [];
-        /** @var DOMElement[] $remove */
-        $remove = [];
-
-        /** @var DOMElement $item */
-        foreach ($this->dom->getElementsByTagName('item') as $item) //Remove items for non-existing files
+        foreach ($this->xpath->query('opf:item', $manifest) as $item)
         {
             $file = $item->attributes->getNamedItem('href')->value;
-            if (!file_exists(files::path_join($this->output_folder, $file)) && substr($file, -3, 3) != 'ncx')
+            if (!file_exists(files::path_join($this->content_folder, $file)) && !str_ends_with($file, 'ncx'))
             {
-                $remove[] = $item;
-                //echo "Missing $file, removing from opf\n";
+                echo "Missing $file, removing from opf\n";
+                $manifest->removeChild($item);
             }
             else
             {
                 $id = $item->attributes->getNamedItem('id')->value;
-                $valid_files[$id] = $file; //Save ID for valid files
+                $this->valid_files[$id] = $file; //Save existing ids
             }
-            /*foreach ($strip_item_tags as $attribute)
-            {
-                $item->removeAttribute($attribute);
-            }*/
-            $properties = $item->getAttribute('properties');
-            if (array_search($properties, $strip_properties) !== false)
-                $item->removeAttribute('properties');
-            elseif (!empty($properties))
-                var_dump($properties);
         }
+    }
 
-        foreach ($this->dom->getElementsByTagName('itemref') as $itemref) //Remove itemref for non-existing items
+    /**
+     * Remove itemref for non-existing items
+     * @return void
+     */
+    protected function strip_spine(): void
+    {
+        $spine = $this->xpath->query('/opf:package/opf:spine')->item(0);
+        foreach ($this->xpath->query('opf:itemref', $spine) as $itemref)
         {
-            $id = $itemref->attributes->getNamedItem('idref')->value;
-            if (!isset($valid_files[$id]))
-                $remove[] = $itemref;
+            $id = $itemref->getAttribute('idref');
+            if (!isset($this->valid_files[$id]))
+                $spine->removeChild($itemref);
         }
+    }
 
-        foreach ($this->dom->getElementsByTagName('reference') as $reference)
+    /**
+     * Remove guide references to missing spine itemrefs
+     * @return void
+     */
+    protected function strip_guide(): void
+    {
+        $guide = $this->xpath->query('/opf:package/opf:guide')->item(0);
+        foreach ($this->xpath->query('opf:reference', $guide) as $reference)
         {
-            $href = $reference->attributes->getNamedItem('href')->value;
-            if (array_search($href, $valid_files) === false)
-                $remove[] = $reference;
+            $href = $reference->getAttribute('href');
+            if (!in_array($href, $this->valid_files))
+                $guide->removeChild($reference);
         }
+    }
 
-        if (!empty($remove))
-            EPUBUtils::remove_elements($remove);
-        else
-            echo "No elements removed from OPF\n";
+    /**
+     * Remove references to missing files
+     * @return void
+     */
+    public function strip_missing(): void
+    {
+        $this->strip_items();
+        $this->strip_spine();
+        $this->strip_guide();
     }
 
     /**
