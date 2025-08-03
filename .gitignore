@@ -2,3 +2,5 @@
 /vendor
 composer.lock
 /bin
+.phpunit.cache
+/tests/test_data/
