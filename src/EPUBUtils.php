@@ -44,4 +44,11 @@ class EPUBUtils
         $process->mustRun();
         return $epub_file;
     }
+
+    public static function unpackEPUB(string $epub_file, string $folder): string
+    {
+        $process = new Process(['unzip', $epub_file, '-d', $folder]);
+        $process->mustRun();
+        return $folder;
+    }
 }
