@@ -94,12 +94,17 @@ class OPF
     }
 
     /**
+     * Get DC metadata property value
      * @param string $field
-     * @return DOMElement
+     * @return string|null
      */
-    function getDc($field)
+    function getDc(string $field): ?string
     {
-        return $this->xpath->query('//dc:'.$field)[0];
+        $elements = $this->xpath->query(sprintf('/opf:package/opf:metadata/dc:%s', $field));
+        if ($elements->length == 1)
+            return $elements->item(0)->nodeValue;
+        else
+            return null;
     }
 
     /**
@@ -130,7 +135,7 @@ class OPF
      * Get dc:identifier element for primary key defined in header
      * @return DOMElement
      */
-    public function getPrimaryKey():DOMElement
+    public function getPrimaryKey(): DOMElement
     {
         $package = $this->xpath->query('/opf:package')->item(0);
         $key = $package->getAttribute('unique-identifier');
