@@ -26,8 +26,13 @@ class EPUBUtils
     }
 
 
-
-    public static function buildEPUB($folder, $epub_file = null)
+    /**
+     * Build epub from folder
+     * @param string $folder Input folder
+     * @param string|null $epub_file Path to the created file (defaults to input folder name)
+     * @return string Path to the created file
+     */
+    public static function buildEPUB(string $folder, string $epub_file = null): string
     {
         if (empty($epub_file))
             $epub_file = $folder . '.epub';
