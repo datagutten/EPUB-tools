@@ -7,23 +7,15 @@ namespace datagutten\epub;
 use datagutten\tools\files\files;
 use DOMDocument;
 use DOMElement;
+use DOMNodeList;
 use DOMXPath;
 
 class OPF
 {
-    /**
-     * @var DOMDocument
-     */
-    public $dom;
-    private $output_folder;
-    /**
-     * @var DOMXPath
-     */
-    public $xpath;
-    /**
-     * @var array
-     */
-    private $strip_patterns = [];
+    public DOMDocument $dom;
+    private string $output_folder;
+    public DOMXPath $xpath;
+    private array $strip_patterns = [];
 
     function __construct($file, $epub_root)
     {
