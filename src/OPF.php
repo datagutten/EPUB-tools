@@ -28,10 +28,10 @@ class OPF
     function __construct($file, $epub_root)
     {
         $this->dom = new DOMDocument();
-        $input_string = file_get_contents($file);
-        $this->dom->loadXML($input_string);
+        $this->dom->load($file);
         $this->xpath = new DOMXPath($this->dom);
         $this->xpath->registerNamespace('dc', 'http://purl.org/dc/elements/1.1/');
+        $this->xpath->registerNamespace('opf', 'http://www.idpf.org/2007/opf');
         $this->output_folder = $epub_root;
     }
 
@@ -126,6 +126,27 @@ class OPF
     {
         $this->strip_patterns[] = $pattern;
     }
+
+    /**
+     * Get dc:identifier element for primary key defined in header
+     * @return DOMElement
+     */
+    public function getPrimaryKey():DOMElement
+    {
+        $package = $this->xpath->query('/opf:package')->item(0);
+        $key = $package->getAttribute('unique-identifier');
+        return $this->xpath->query(sprintf('/opf:package/opf:metadata/dc:identifier[@id="%s"]', $key))->item(0);
+    }
+
+    /**
+     * Get all dc:identifier elements
+     * @return DOMNodeList
+     */
+    public function getIdentifiers(): DOMNodeList
+    {
+        return $this->xpath->query('//dc:identifier');
+    }
+
 
     function saveFile($file)
     {
