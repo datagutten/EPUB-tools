@@ -36,6 +36,12 @@ class OPF
         $this->content_folder = files::path_join($this->output_folder, basename(dirname($file)));
     }
 
+    public function setPrimaryKey(string $key): void
+    {
+        $package = $this->xpath->query('/opf:package')->item(0);
+        $package->setAttribute('unique-identifier', $key);
+    }
+
     /**
      * Remove manifest item entries for missing files
      * @return void
