@@ -25,17 +25,7 @@ class EPUBUtils
         }
     }
 
-    /**
-     * @param $file
-     */
-    public static function epubCheck($file)
-    {
-        $jar = realpath(files::path_join(__DIR__, '..', 'bin', 'epubcheck', 'epubcheck.jar'));
-        $process = new Process(['java', '-jar', $jar, $file]);
-        $process->run();
-        echo $process->getOutput();
-        echo $process->getErrorOutput();
-    }
+
 
     public static function buildEPUB($folder, $epub_file = null)
     {

@@ -4,6 +4,7 @@
     "type": "library",
     "require": {
         "datagutten/tools": "^1.8",
+        "rmccue/requests": "^2.0",
         "symfony/process": "^7|^6|^5|^4",
         "symfony/filesystem": "^7|^6|^5|^4|^3",
         "ext-dom": "*",
@@ -27,7 +28,6 @@
     "bin": [
         "scripts/build_epub.php",
         "scripts/epubcheck.php",
-        "scripts/download_epubcheck.php",
         "scripts/clean_opf.php"
     ]
 }
