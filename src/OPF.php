@@ -36,11 +36,11 @@ class OPF
 
     function strip_metadata($tags = [])
     {
-        foreach($this->dom->getElementsByTagName('metadata')->item(0)->childNodes as $dc) //Process metadata
+        foreach ($this->dom->getElementsByTagName('metadata')->item(0)->childNodes as $dc) //Process metadata
         {
-            if(isset($dc->tagName) && array_search($dc->tagName, $tags)!==false)
+            if (isset($dc->tagName) && array_search($dc->tagName, $tags) !== false)
             {
-                $remove[]=$dc;
+                $remove[] = $dc;
             }
         }
     }
@@ -56,10 +56,13 @@ class OPF
         foreach ($this->dom->getElementsByTagName('item') as $item) //Remove items for non-existing files
         {
             $file = $item->attributes->getNamedItem('href')->value;
-            if (!file_exists(files::path_join($this->output_folder, $file)) && substr($file, -3, 3) != 'ncx') {
+            if (!file_exists(files::path_join($this->output_folder, $file)) && substr($file, -3, 3) != 'ncx')
+            {
                 $remove[] = $item;
                 //echo "Missing $file, removing from opf\n";
-            } else {
+            }
+            else
+            {
                 $id = $item->attributes->getNamedItem('id')->value;
                 $valid_files[$id] = $file; //Save ID for valid files
             }
@@ -68,9 +71,9 @@ class OPF
                 $item->removeAttribute($attribute);
             }*/
             $properties = $item->getAttribute('properties');
-            if(array_search($properties, $strip_properties) !== false)
+            if (array_search($properties, $strip_properties) !== false)
                 $item->removeAttribute('properties');
-            elseif(!empty($properties))
+            elseif (!empty($properties))
                 var_dump($properties);
         }
 
@@ -81,7 +84,8 @@ class OPF
                 $remove[] = $itemref;
         }
 
-        foreach ($this->dom->getElementsByTagName('reference') as $reference) {
+        foreach ($this->dom->getElementsByTagName('reference') as $reference)
+        {
             $href = $reference->attributes->getNamedItem('href')->value;
             if (array_search($href, $valid_files) === false)
                 $remove[] = $reference;
