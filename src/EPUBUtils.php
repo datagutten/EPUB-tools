@@ -29,13 +29,14 @@ class EPUBUtils
 
     public static function buildEPUB($folder, $epub_file = null)
     {
-        if(empty($epub_file))
-            $epub_file = $folder.'.epub';
+        if (empty($epub_file))
+            $epub_file = $folder . '.epub';
 
         file_put_contents(files::path_join($folder, 'mimetype'), 'application/epub+zip');
-        shell_exec($cmd=sprintf('cd "%s" && zip -0 -X "%s" mimetype 2>&1',$folder, $epub_file));
-        shell_exec($cmd=sprintf('cd "%s" && zip -rg "%s" * -x mimetype 2>&1',$folder, $epub_file));
-
+        $process = new Process(['zip', '-0', '-X', $epub_file, 'mimetype'], $folder);
+        $process->mustRun();
+        $process = new Process(['zip', '-rg', $epub_file, '.', '-x', 'mimetype'], $folder);
+        $process->mustRun();
         return $epub_file;
     }
 }
