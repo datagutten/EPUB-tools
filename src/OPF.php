@@ -232,11 +232,10 @@ class OPF
         foreach ($this->getIdentifiers() as $identifier)
         {
             $id = $identifier->getAttribute('id');
-            if (stripos($id, 'isbn') !== false || stripos($identifier->nodeValue, 'isbn') !== false)
-            {
-                $identifier->setAttribute('id', 'ISBN');
+            $scheme = $identifier->getAttribute('opf:scheme');
+
+            if (stripos($id, 'isbn') !== false || stripos($identifier->nodeValue, 'isbn') !== false || $scheme=='ISBN')
                 return preg_replace('/\D*(\d+)/', '$1', $identifier->nodeValue);
-            }
         }
         throw new RuntimeException('ISBN not found in OPF');
     }
