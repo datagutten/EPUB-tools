@@ -29,6 +29,16 @@ class EPUB
     }
 
     /**
+     * Remove bookmark from link
+     * @param string $link
+     * @return string
+     */
+    public static function clean_link(string $link): string
+    {
+        return preg_replace('/(.+\.\w+)(?:#.+)?/', '$1', $link);
+    }
+
+    /**
      * Convert a relative link to a file path
      * @param string $link Link
      * @param string $content_folder Content folder where the page files are placed
@@ -37,7 +47,7 @@ class EPUB
      */
     public static function link_to_file(string $link, string $content_folder): string
     {
-        $file = files::path_join($content_folder, preg_replace('/(.+\.\w+)(?:#.+)?/', '$1', $link));
+        $file = files::path_join($content_folder, self::clean_link($link));
         if (!file_exists($file))
             throw new FileNotFoundException($file);
         if (DIRECTORY_SEPARATOR != '/')
