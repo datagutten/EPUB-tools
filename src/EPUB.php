@@ -9,7 +9,13 @@ use RuntimeException;
 
 class EPUB
 {
-    private string $folder;
+    /**
+     * @var string Epub root folder
+     */
+    public string $folder;
+    /**
+     * @var string Folder where opf file is located
+     */
     public string $content_folder;
     public OPF $opf;
 
